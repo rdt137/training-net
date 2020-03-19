@@ -1,0 +1,35 @@
+name: $(date:yyyyMMdd)$(rev:.rr)
+
+pr:
+  - stage: build
+      jobs:
+        - job: build_dotnet
+          pool:
+            vmImage: ubuntu-18.04
+          stage:
+            - script: dotnet build
+  - stage: analyze
+  - stage: test
+      jobs:
+        - job: test
+          pool:
+            vmImage: ubuuntu-18.04
+          steps:
+            - script: dotnet test --collect:"XPlat Code Coverage"
+  - stage: pack
+      jobs:
+        - job:
+          pool:
+            vmImage: ubuntu-18.04
+          steps:
+            - script: |
+                docker login
+                docker image build -f dockerfile -t robythomas/p1proj .
+                docker image push robythomas/p1proj
+                docker logout  
+
+
+trigger:
+  - master
+
+variables:
